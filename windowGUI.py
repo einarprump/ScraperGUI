@@ -12,9 +12,8 @@ class Manager(object):
         self.gui.input_frame.urlFileName.set(asdf)
     
     def btnScrape(self):
-        # VALIDATE-A URL, !GEYMA URL!
         fileORhttp = self.gui.input_frame.urlFileName.get()
-        if fileORhttp.startswith('http:'):
+        if fileORhttp[0:5] == ("http:"):
             print("DO SOMETHING WITH WEBSITE")
         else:
             f = open(fileORhttp, 'r', encoding='utf-8')
