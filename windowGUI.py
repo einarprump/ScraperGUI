@@ -7,16 +7,16 @@ class Manager(object):
        self.parser = Eparser()
        self.gui = gui
        self.gui.listbox_frame.manager = self
+       self.gui.input_frame.manager = self
     
-    def btnScrape(self):
-        fileORhttp = self.gui.input_frame.urlFileName.get()
-        if len(fileORhttp) < 5:
+    def btnScrape(self, filename):
+        if len(filename) < 5:
             print("Not a file or a url!")
         else:
-            if fileORhttp[0:4] == ("http"):
+            if filename[0:4] == ("http"):
                 print("DO SOMETHING WITH WEBSITE")
             else:
-                f = open(fileORhttp, 'r', encoding='utf-8')
+                f = open(filename, 'r', encoding='utf-8')
                 requestBytes = f.read()
                 #requestString = requestBytes.decode("utf-8")
                 self.parser.feed(requestBytes)
@@ -44,12 +44,11 @@ class InputFrame(ttk.Frame):
             widget.grid(padx=5, pady=5)
 
     def btnScrape(self):
-        self.gui.input_frame.urlFileName.set(self.urlFileName)
-        self.manager.btnScrape()
+        self.manager.btnScrape(self.urlFileName.get())
 
     def btnOpenFile(self):
         filename = openFile.askopenfilename(initialdir="/", title="Select file", filetypes=[('HTML', '*.html')])
-        self.urlFileName.setEntry(filename)
+        self.urlFileName.set(filename)
 
 class ListboxFrame(ttk.Frame):
     def __init__(self, container):
