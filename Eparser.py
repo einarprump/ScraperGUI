@@ -1,8 +1,6 @@
 from html.parser import HTMLParser
 from queue import LifoQueue
 
-import pprint
-
 class Attributes:
     def __init__(self, attrs):
         self.attrs = attrs
@@ -15,10 +13,6 @@ class Eparser(HTMLParser):
         self.tmpClass = {}
         self.tags = LifoQueue(0)
         self.currentData = None
-
-    def display(self):
-        pp = pprint.PrettyPrinter(indent=2)
-        pp.pprint(self.htmlDoc)
 
     def handle_starttag(self, tag, attrs):
         self.tags.put({'tag': tag, 'attrs': attrs})
