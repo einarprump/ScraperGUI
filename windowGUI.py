@@ -8,8 +8,15 @@ class Manager(object):
        self.gui = gui
        self.gui.listbox_frame.manager = self
        self.gui.input_frame.manager = self
+       self.gui.options_frame.manager = self
     
     def btnScrape(self, filename):
+        ####
+        if len(self.gui.options_frame.tags.get()) == 0:
+            print("NOTHING TO do!")
+        else:
+            print("->", self.gui.options_frame.tags.get())
+        #####
         if len(filename) < 5:
             print("Not a file or a url!")
         else:
@@ -23,12 +30,10 @@ class Manager(object):
                 f.close()
             for t in self.parser.htmlDoc.keys():
                 self.gui.listbox_frame.tagListbox.insert(ttk.END, t)
-    
+
 class InputFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
-        #self.columnconfigure(0, weight=1)
-        #self.rowconfigure(1, weight=1)
         self.__create_widgets()
         self.manager = None
     
@@ -38,8 +43,8 @@ class InputFrame(ttk.Frame):
         self.urlFileEntry = ttk.Entry(self, width=100, textvariable = self.urlFileName)
         self.urlFileEntry.focus()
         self.urlFileEntry.grid(column=1, row=0, sticky=ttk.W)
-        self.scrapeBtn = ttk.Button(self, text="Scrape", command=self.btnScrape, underline=0).grid(column=2, row=0, ipadx=3, sticky="NEWS")
-        self.openFile = ttk.Button(self, text="Open file..", command=self.btnOpenFile, underline=0).grid(column=3, row=0, ipadx=3, sticky="NEWS")
+        self.scrapeBtn = ttk.Button(self, text="Scrape", command=self.btnScrape, underline=0, takefocus=True).grid(column=2, row=0, ipadx=3, sticky="NEWS")
+        self.openFile = ttk.Button(self, text="Open file..", command=self.btnOpenFile, underline=0, takefocus=True).grid(column=3, row=0, ipadx=3, sticky="NEWS")
         for widget in self.winfo_children():
             widget.grid(padx=5, pady=5)
 
@@ -64,24 +69,19 @@ class ListboxFrame(ttk.Frame):
         self.tagScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
         self.tagScrollbar.grid(row=1, column=1, sticky=ttk.N+ttk.S)
 
-        self.tagListbox = ttk.Listbox(self, yscrollcommand=self.tagScrollbar.set)
-        self.tagListbox.grid(row=1, column=0, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        self.tagListbox = ttk.Listbox(self, yscrollcommand=self.tagScrollbar.set, selectmode=ttk.SINGLE)
+        self.tagListbox.grid(row=1, column=0, padx=(5,0), sticky=ttk.S+ttk.E+ttk.W+ttk.N)
 
         self.tagListbox.bind("<<ListboxSelect>>", self.updateAttrListbox)
-        
-
-        self.tagListbox.columnconfigure(0, weight=1)
 
         # ATTR SCROLL AND LISTBOX
         self.attrFrame = ttk.Label(self, text = "Attributes").grid(row=0, column=2, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
         self.attrScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
         self.attrScrollbar.grid(row=1, column=3, sticky=ttk.N+ttk.S)
 
-        self.attrListbox = ttk.Listbox(self, yscrollcommand=self.attrScrollbar.set)
-        self.attrListbox.grid(row=1, column=2, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        self.attrListbox = ttk.Listbox(self, yscrollcommand=self.attrScrollbar.set, selectmode=ttk.SINGLE)
+        self.attrListbox.grid(row=1, column=2, padx=(5,0), sticky=ttk.S+ttk.E+ttk.W+ttk.N)
         
-        self.attrListbox.columnconfigure(0, weight=1)
-
         self.tagScrollbar['command'] = self.tagListbox.yview
         self.attrScrollbar['command'] = self.attrListbox.yview
     
@@ -95,15 +95,28 @@ class OptionsFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
         self.__create_widgets()
+        self.manager = None
     
     def __create_widgets(self):
         self.tags = ttk.StringVar()
-        settingsLabelFrame = ttk.LabelFrame(self, text="Options", borderwidth=2, cursor="boat")
-        settingsLabelFrame.grid(row=0, column=0, columnspan=3, pady=10, padx=10, ipadx=5, ipady=5, sticky="NEWS")
-        self.catchTagLabel = ttk.Label(settingsLabelFrame, text="Get Tags:").grid(row=1, column=0, sticky="NE")
-        self.catchTagEntry = ttk.Entry(settingsLabelFrame, width=50, textvariable=self.tags).grid(row=1, column=1, sticky="NEWS")
+        self.attrs = ttk.StringVar()
+        self.classname = ttk.StringVar()
+        self.tag_id = ttk.StringVar()
 
+        fetchLabelFrame = ttk.LabelFrame(self, text="Fetch only?", borderwidth=2)
+        fetchLabelFrame.grid(row=0, column=0, columnspan=3, pady=10, padx=10, ipadx=5, ipady=5, sticky="NEWS")
+        ttk.Label(fetchLabelFrame, text="Tags:").grid(row=1, column=0, pady=(5,0), sticky="WNE")
+        ttk.Entry(fetchLabelFrame, width=50, textvariable=self.tags).grid(row=1, column=1, pady=(5,0), sticky="NEWS")
+        ttk.Label(fetchLabelFrame, text="Attributes:").grid(row=2, column=0, pady=(5,0), sticky="WNE")
+        ttk.Entry(fetchLabelFrame, width=50, textvariable=self.attrs).grid(row=2, column=1, pady=(5,0), sticky="NEWS")
 
+        showDataInLabelFrame = ttk.LabelFrame(self, text="Show data inside:", borderwidth=2)
+        showDataInLabelFrame.grid(row=3, column=0, columnspan=3, pady=10, padx=10, ipadx=5, ipady=5, sticky="NEWS")
+        ttk.Label(showDataInLabelFrame, text="Class:").grid(row=4, column=0, pady=(5,0), sticky="WNE")
+        ttk.Entry(showDataInLabelFrame, width=50, textvariable=self.classname).grid(row=4, column=1, pady=(5,0), sticky="NEWS")
+        ttk.Label(showDataInLabelFrame, text="id:").grid(row=5, column=0, pady=(5,0), sticky="WNE")
+        ttk.Entry(showDataInLabelFrame, width=50, textvariable=self.tag_id).grid(row=5, column=1, pady=(5,0), sticky="NEWS")
+        
 class ApplicationGUI(ttk.Tk):
     '''
     classdocs

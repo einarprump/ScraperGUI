@@ -1,4 +1,6 @@
 from html.parser import HTMLParser
+from queue import LifoQueue
+
 import pprint
 
 class Attributes:
@@ -11,12 +13,15 @@ class Eparser(HTMLParser):
         HTMLParser.__init__(self)
         self.htmlDoc = {}
         self.tmpClass = {}
+        self.tags = LifoQueue(0)
+        self.currentData = None
 
     def display(self):
         pp = pprint.PrettyPrinter(indent=2)
         pp.pprint(self.htmlDoc)
 
     def handle_starttag(self, tag, attrs):
+        self.tags.put({'tag': tag, 'attrs': attrs})
         if tag not in self.htmlDoc:
             self.htmlDoc[tag] = {}
           
@@ -33,12 +38,16 @@ class Eparser(HTMLParser):
                 pass
             
     def handle_endtag(self, tag):
+        obj = self.tags.get()
+        if self.currentData:
+            print('OBJ:', obj, " : ", self.currentData[0:4])
 
-        pass
         
     def handle_data(self, data):
         cleanString = data.rstrip("\t \n")
         if len(cleanString) > 3:
-            if self.tmpClass['tag'] != "script" and self.tmpClass['tag'] != "style" and self.tmpClass['tag'] != "meta":
-                print(f"WE HAVE DATA!!  -> {cleanString}   : {self.tmpClass['tag']} - {self.tmpClass['attr']} - {self.tmpClass['prop']}")
+            self.currentData = cleanString
+            #if self.tmpClass['tag'] != "script" and self.tmpClass['tag'] != "style" and self.tmpClass['tag'] != "meta":
+            #    pass
+                #print(f"WE HAVE DATA!!  -> {cleanString}   : {self.tmpClass['tag']} - {self.tmpClass['attr']} - {self.tmpClass['prop']}")
 
