@@ -79,7 +79,7 @@ class ListboxFrame(ttk.Frame):
         self.tagScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
         self.tagScrollbar.grid(row=1, column=1, sticky=ttk.N+ttk.S)
 
-        self.tagListbox = ttk.Listbox(self, yscrollcommand=self.tagScrollbar)
+        self.tagListbox = ttk.Listbox(self, yscrollcommand=self.tagScrollbar.set)
         self.tagListbox.grid(row=1, column=0, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
 
         self.tagListbox.bind("<<ListboxSelect>>", self.updateAttrListbox)
@@ -92,7 +92,7 @@ class ListboxFrame(ttk.Frame):
         self.attrScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
         self.attrScrollbar.grid(row=1, column=3, sticky=ttk.N+ttk.S)
 
-        self.attrListbox = ttk.Listbox(self, yscrollcommand=self.attrScrollbar)
+        self.attrListbox = ttk.Listbox(self, yscrollcommand=self.attrScrollbar.set)
         self.attrListbox.grid(row=1, column=2, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
         
         self.attrListbox.columnconfigure(0, weight=1)
