@@ -6,31 +6,33 @@ class Manager(object):
     def __init__(self, gui):
        self.parser = Eparser()
        self.gui = gui
+       self.gui.listbox_frame.manager = self
        self.gui.button_frame.manager = self
 
-    def setEntry(self, asdf):
-        self.gui.input_frame.urlFileName.set(asdf)
+    def setEntry(self, filename):
+        self.gui.input_frame.urlFileName.set(filename)
     
     def btnScrape(self):
         fileORhttp = self.gui.input_frame.urlFileName.get()
-        if fileORhttp[0:5] == ("http:"):
-            print("DO SOMETHING WITH WEBSITE")
+        if len(fileORhttp) < 5:
+            print("Not a file or a url!")
         else:
-            f = open(fileORhttp, 'r', encoding='utf-8')
-            requestBytes = f.read()
-            #requestString = requestBytes.decode("utf-8")
-            self.parser.feed(requestBytes)
-            f.close()
-
-        for t in self.parser.htmlDoc.keys():
-            self.gui.tag_frame.tagListbox.insert(ttk.END, t)
+            if fileORhttp[0:4] == ("http"):
+                print("DO SOMETHING WITH WEBSITE")
+            else:
+                f = open(fileORhttp, 'r', encoding='utf-8')
+                requestBytes = f.read()
+                #requestString = requestBytes.decode("utf-8")
+                self.parser.feed(requestBytes)
+                f.close()
+            for t in self.parser.htmlDoc.keys():
+                self.gui.listbox_frame.tagListbox.insert(ttk.END, t)
     
 class InputFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
-
         self.__create_widgets()
     
     def __create_widgets(self):
@@ -63,25 +65,46 @@ class ButtonFrame(ttk.Frame):
         self.manager.setEntry(filename)
 
 
-class TagFrame(ttk.Frame):
+class ListboxFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
         self.__create_widgets()
+        self.manager = None
+        self.selected = { 'tag': None, 'attr': None }
     
     def __create_widgets(self):
         self.tagFrame = ttk.Label(self, text = "Tags").grid(row=0, column=0, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
 
+        # TAG SCROLL AND LISTBOX #
         self.tagScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
         self.tagScrollbar.grid(row=1, column=1, sticky=ttk.N+ttk.S)
 
         self.tagListbox = ttk.Listbox(self, yscrollcommand=self.tagScrollbar)
         self.tagListbox.grid(row=1, column=0, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
 
+        self.tagListbox.bind("<<ListboxSelect>>", self.updateAttrListbox)
+        
 
-        #self.tagListbox.bind("<<ListboxSelect>>", self.updateTagSelected)  
         self.tagListbox.columnconfigure(0, weight=1)
 
+        # ATTR SCROLL AND LISTBOX
+        self.attrFrame = ttk.Label(self, text = "Attributes").grid(row=0, column=2, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        self.attrScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
+        self.attrScrollbar.grid(row=1, column=3, sticky=ttk.N+ttk.S)
+
+        self.attrListbox = ttk.Listbox(self, yscrollcommand=self.attrScrollbar)
+        self.attrListbox.grid(row=1, column=2, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        
+        self.attrListbox.columnconfigure(0, weight=1)
+
         self.tagScrollbar['command'] = self.tagListbox.yview
+        self.attrScrollbar['command'] = self.attrListbox.yview
+    
+    def updateAttrListbox(self, e):
+        self.selected['tag'] = self.tagListbox.get(self.tagListbox.curselection())
+        self.attrListbox.delete(0, self.attrListbox.size())
+        for a in self.manager.parser.htmlDoc[self.selected['tag']].keys():
+            self.attrListbox.insert(ttk.END, a)
 
 
 class ApplicationGUI(ttk.Tk):
@@ -108,8 +131,8 @@ class ApplicationGUI(ttk.Tk):
         self.button_frame = ButtonFrame(self)
         self.button_frame.grid(column=1, row=0, sticky="WENS")
 
-        self.tag_frame = TagFrame(self)
-        self.tag_frame.grid(row=1, column=0, sticky="WENS", padx=5, pady=(0, 5))
+        self.listbox_frame = ListboxFrame(self)
+        self.listbox_frame.grid(row=1, column=0, sticky="WENS", padx=5, pady=(0, 5))
 
 
 if __name__ == "__main__":
