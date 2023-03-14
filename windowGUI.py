@@ -7,10 +7,6 @@ class Manager(object):
        self.parser = Eparser()
        self.gui = gui
        self.gui.listbox_frame.manager = self
-       self.gui.button_frame.manager = self
-
-    def setEntry(self, filename):
-        self.gui.input_frame.urlFileName.set(filename)
     
     def btnScrape(self):
         fileORhttp = self.gui.input_frame.urlFileName.get()
@@ -31,9 +27,10 @@ class Manager(object):
 class InputFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
+        #self.columnconfigure(0, weight=1)
+        #self.rowconfigure(1, weight=1)
         self.__create_widgets()
+        self.manager = None
     
     def __create_widgets(self):
         self.urlFile = ttk.Label(self, text = "Url / File:").grid(column=0, row=0, sticky=ttk.W)
@@ -41,29 +38,18 @@ class InputFrame(ttk.Frame):
         self.urlFileEntry = ttk.Entry(self, width=100, textvariable = self.urlFileName)
         self.urlFileEntry.focus()
         self.urlFileEntry.grid(column=1, row=0, sticky=ttk.W)
+        self.scrapeBtn = ttk.Button(self, text="Scrape", command=self.btnScrape, underline=0).grid(column=2, row=0, ipadx=3, sticky="NEWS")
+        self.openFile = ttk.Button(self, text="Open file..", command=self.btnOpenFile, underline=0).grid(column=3, row=0, ipadx=3, sticky="NEWS")
         for widget in self.winfo_children():
-            widget.grid(padx=0, pady=5)
+            widget.grid(padx=5, pady=5)
 
-class ButtonFrame(ttk.Frame):
-    def __init__(self, container):
-        super().__init__(container)
-        self.columnconfigure(0, weight=1)
-        self.__create_widgets()
-        self.manager = None
-
-    def __create_widgets(self):
-        self.scrapeBtn = ttk.Button(self, text="Scrape", command=self.btnScrape, underline=0).grid(column=0, row=0, ipadx=3)
-        self.openFile = ttk.Button(self, text="Open file..", command=self.btnOpenFile, underline=0).grid(column=1, row=0, ipadx=3)
-        for widget in self.winfo_children():
-            widget.grid(padx=3, pady=3)
-    
     def btnScrape(self):
+        self.gui.input_frame.urlFileName.set(self.urlFileName)
         self.manager.btnScrape()
 
     def btnOpenFile(self):
         filename = openFile.askopenfilename(initialdir="/", title="Select file", filetypes=[('HTML', '*.html')])
-        self.manager.setEntry(filename)
-
+        self.urlFileName.setEntry(filename)
 
 class ListboxFrame(ttk.Frame):
     def __init__(self, container):
@@ -106,6 +92,18 @@ class ListboxFrame(ttk.Frame):
         for a in self.manager.parser.htmlDoc[self.selected['tag']].keys():
             self.attrListbox.insert(ttk.END, a)
 
+class OptionsFrame(ttk.Frame):
+    def __init__(self, container):
+        super().__init__(container)
+        self.__create_widgets()
+    
+    def __create_widgets(self):
+        self.tags = ttk.StringVar()
+        settingsLabelFrame = ttk.LabelFrame(self, text="Options", borderwidth=2, cursor="boat")
+        settingsLabelFrame.grid(row=0, column=0, columnspan=3, pady=10, padx=10, ipadx=5, ipady=5, sticky="NEWS")
+        self.catchTagLabel = ttk.Label(settingsLabelFrame, text="Get Tags:").grid(row=1, column=0, sticky="NE")
+        self.catchTagEntry = ttk.Entry(settingsLabelFrame, width=50, textvariable=self.tags).grid(row=1, column=1, sticky="NEWS")
+
 
 class ApplicationGUI(ttk.Tk):
     '''
@@ -117,8 +115,6 @@ class ApplicationGUI(ttk.Tk):
         self.resizable(width = False, height = False)
         #self.geometry("700x700")
         self.attributes('-toolwindow', True)
-
-        self.columnconfigure(0, weight=4)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(1, weight=1)
 
@@ -128,11 +124,13 @@ class ApplicationGUI(ttk.Tk):
         self.input_frame = InputFrame(self)
         self.input_frame.grid(column=0, row=0, sticky="WENS")
 
-        self.button_frame = ButtonFrame(self)
-        self.button_frame.grid(column=1, row=0, sticky="WENS")
-
         self.listbox_frame = ListboxFrame(self)
-        self.listbox_frame.grid(row=1, column=0, sticky="WENS", padx=5, pady=(0, 5))
+        self.listbox_frame.grid(column=0, row=1, sticky="WENS", pady=(0, 5), padx=5)
+
+        self.options_frame = OptionsFrame(self)
+        self.options_frame.grid(column=0, row=1, rowspan=4, columnspan=4, sticky="ENS")
+
+        
 
 
 if __name__ == "__main__":
