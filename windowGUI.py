@@ -8,15 +8,9 @@ class Manager(object):
        self.gui = gui
        self.gui.listbox_frame.manager = self
        self.gui.input_frame.manager = self
-       self.gui.options_frame.manager = self
+       #self.gui.options_frame.manager = self
     
     def btnScrape(self, filename):
-        ####
-        if len(self.gui.options_frame.tags.get()) == 0:
-            print("NOTHING TO do!")
-        else:
-            print("->", self.gui.options_frame.tags.get())
-        #####
         if len(filename) < 5:
             print("Not a file or a url!")
         else:
@@ -30,6 +24,9 @@ class Manager(object):
                 f.close()
             for t in self.parser.htmlDoc.keys():
                 self.gui.listbox_frame.tagListbox.insert(ttk.END, t)
+
+    #def insertAttrb(self, )
+
 
 class InputFrame(ttk.Frame):
     def __init__(self, container):
@@ -63,33 +60,61 @@ class ListboxFrame(ttk.Frame):
         self.selected = { 'tag': None, 'attr': None }
     
     def __create_widgets(self):
-        self.tagFrame = ttk.Label(self, text = "Tags").grid(row=0, column=0, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        
 
         # TAG SCROLL AND LISTBOX #
-        self.tagScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
-        self.tagScrollbar.grid(row=1, column=1, sticky=ttk.N+ttk.S)
+        ttk.Label(self, text = "Tags").grid(row=0, column=0, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
 
-        self.tagListbox = ttk.Listbox(self, yscrollcommand=self.tagScrollbar.set, selectmode=ttk.SINGLE)
+        tagScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
+        tagScrollbar.grid(row=1, column=1, sticky=ttk.N+ttk.S)
+
+        self.tagListbox = ttk.Listbox(self, yscrollcommand=tagScrollbar.set, selectmode=ttk.SINGLE, exportselection=False)
         self.tagListbox.grid(row=1, column=0, padx=(5,0), sticky=ttk.S+ttk.E+ttk.W+ttk.N)
 
         self.tagListbox.bind("<<ListboxSelect>>", self.updateAttrListbox)
+        tagScrollbar['command'] = self.tagListbox.yview
 
         # ATTR SCROLL AND LISTBOX
-        self.attrFrame = ttk.Label(self, text = "Attributes").grid(row=0, column=2, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
-        self.attrScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
-        self.attrScrollbar.grid(row=1, column=3, sticky=ttk.N+ttk.S)
+        ttk.Label(self, text = "Attributes").grid(row=0, column=2, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        attrScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
+        attrScrollbar.grid(row=1, column=3, padx=0, sticky=ttk.N+ttk.S)
 
-        self.attrListbox = ttk.Listbox(self, yscrollcommand=self.attrScrollbar.set, selectmode=ttk.SINGLE)
-        self.attrListbox.grid(row=1, column=2, padx=(5,0), sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        self.attrListbox = ttk.Listbox(self, yscrollcommand=attrScrollbar.set, selectmode=ttk.SINGLE, exportselection=False)
+        self.attrListbox.grid(row=1, column=2, padx=(10,0), sticky=ttk.S+ttk.E+ttk.W+ttk.N)
         
-        self.tagScrollbar['command'] = self.tagListbox.yview
-        self.attrScrollbar['command'] = self.attrListbox.yview
-    
+        self.attrListbox.bind("<<ListboxSelect>>", self.updateValueListbox)
+        attrScrollbar['command'] = self.attrListbox.yview
+
+        # PROPERY SCROLL AND LISTBOX
+        #self.columnconfigure(4, weight=2)
+        ttk.Label(self, text="Value").grid(row=0, column=4, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        valueScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
+        valueScrollbar.grid(row=1, column=5, sticky=ttk.N+ttk.S)
+        self.valueListbox = ttk.Listbox(self, yscrollcommand=valueScrollbar.set, selectmode=ttk.SINGLE, exportselection=False)
+        self.valueListbox.grid(row=1, column=4, padx=(5,0), sticky=ttk.S+ttk.E+ttk.W+ttk.N)
+        valueScrollbar['command'] = self.valueListbox.yview
+        
+        
+        
+        
     def updateAttrListbox(self, e):
         self.selected['tag'] = self.tagListbox.get(self.tagListbox.curselection())
-        self.attrListbox.delete(0, self.attrListbox.size())
+        if self.attrListbox.size() > 0:
+            self.attrListbox.delete(0, self.attrListbox.size())
         for a in self.manager.parser.htmlDoc[self.selected['tag']].keys():
+            print("updateAttrListbox:", a)
             self.attrListbox.insert(ttk.END, a)
+            print("SIZE: ", self.attrListbox.size())
+    
+    def updateValueListbox(self, e):
+        print("SIZE: ", self.valueListbox.size())
+        currSelectet = self.attrListbox.curselection()
+        if currSelectet != ():
+            self.selected['attr'] = self.attrListbox.get(self.attrListbox.curselection())
+            self.valueListbox.delete(0, self.valueListbox.size())
+            for a in self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']]:
+                self.valueListbox.insert(ttk.END, a['prop'])
+
 
 class OptionsFrame(ttk.Frame):
     def __init__(self, container):
@@ -139,8 +164,8 @@ class ApplicationGUI(ttk.Tk):
         self.listbox_frame = ListboxFrame(self)
         self.listbox_frame.grid(column=0, row=1, sticky="WENS", pady=(0, 5), padx=5)
 
-        self.options_frame = OptionsFrame(self)
-        self.options_frame.grid(column=0, row=1, rowspan=4, columnspan=4, sticky="ENS")
+        #self.options_frame = OptionsFrame(self)
+        #self.options_frame.grid(column=0, row=1, rowspan=4, columnspan=4, sticky="ENS")
 
         
 
