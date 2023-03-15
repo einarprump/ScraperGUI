@@ -97,13 +97,21 @@ class ListboxFrame(ttk.Frame):
         #
         self.theData = ttk.StringVar()
         ttk.Label(self, text="DATA:").grid(row=2, column=1, sticky=ttk.E+ttk.W+ttk.N)
-        self.currentData = ttk.Label(self, textvariable=self.theData).grid(row=2, column=2, columnspan=2, sticky=ttk.E+ttk.W+ttk.N)
+        self.currentData = ttk.Label(self, textvariable=self.theData).grid(row=2, column=2, columnspan=3, sticky=ttk.W+ttk.N)
         
     def updateTheData(self, e):
         currProp = self.valueListbox.get(self.valueListbox.curselection())
         #print(self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']][currProp])
+        data = self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']][currProp][0]
+        if (len(data) > 30):
+            self.theData.set(data[0:30])
+        else:
+            self.theData.set(data)
         
     def updateAttrListbox(self, e):
+        if self.valueListbox.size() > 0:
+            self.valueListbox.delete(0, self.valueListbox.size())
+            self.theData.set("")
         self.selected['tag'] = self.tagListbox.get(self.tagListbox.curselection())
         if self.attrListbox.size() > 0:
             self.attrListbox.delete(0, self.attrListbox.size())
