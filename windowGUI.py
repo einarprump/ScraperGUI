@@ -101,25 +101,22 @@ class ListboxFrame(ttk.Frame):
         
     def updateTheData(self, e):
         currProp = self.valueListbox.get(self.valueListbox.curselection())
-        print("PROP:", self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']])
+        #print(self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']][currProp])
         
     def updateAttrListbox(self, e):
         self.selected['tag'] = self.tagListbox.get(self.tagListbox.curselection())
         if self.attrListbox.size() > 0:
             self.attrListbox.delete(0, self.attrListbox.size())
         for a in self.manager.parser.htmlDoc[self.selected['tag']].keys():
-            print("updateAttrListbox:", a)
             self.attrListbox.insert(ttk.END, a)
-            print("SIZE: ", self.attrListbox.size())
     
     def updateValueListbox(self, e):
-        print("SIZE: ", self.valueListbox.size())
         currSelectet = self.attrListbox.curselection()
         if currSelectet != ():
             self.selected['attr'] = self.attrListbox.get(self.attrListbox.curselection())
             self.valueListbox.delete(0, self.valueListbox.size())
-            for a in self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']]:
-                self.valueListbox.insert(ttk.END, a['prop'])
+            for a in self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']].keys():
+                self.valueListbox.insert(ttk.END, a)
 
 
 class OptionsFrame(ttk.Frame):
