@@ -57,7 +57,7 @@ class ListboxFrame(ttk.Frame):
         super().__init__(container)
         self.__create_widgets()
         self.manager = None
-        self.selected = { 'tag': None, 'attr': None }
+        self.selected = { 'tag': None, 'attr': None, 'prop': None }
     
     def __create_widgets(self):
         
@@ -86,16 +86,22 @@ class ListboxFrame(ttk.Frame):
         attrScrollbar['command'] = self.attrListbox.yview
 
         # PROPERY SCROLL AND LISTBOX
-        #self.columnconfigure(4, weight=2)
+        self.columnconfigure(4, weight=2)
         ttk.Label(self, text="Value").grid(row=0, column=4, sticky=ttk.S+ttk.E+ttk.W+ttk.N)
         valueScrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
         valueScrollbar.grid(row=1, column=5, sticky=ttk.N+ttk.S)
         self.valueListbox = ttk.Listbox(self, yscrollcommand=valueScrollbar.set, selectmode=ttk.SINGLE, exportselection=False)
         self.valueListbox.grid(row=1, column=4, padx=(5,0), sticky=ttk.S+ttk.E+ttk.W+ttk.N)
         valueScrollbar['command'] = self.valueListbox.yview
+        self.valueListbox.bind("<<ListboxSelect>>", self.updateTheData)
+        #
+        self.theData = ttk.StringVar()
+        ttk.Label(self, text="DATA:").grid(row=2, column=1, sticky=ttk.E+ttk.W+ttk.N)
+        self.currentData = ttk.Label(self, textvariable=self.theData).grid(row=2, column=2, columnspan=2, sticky=ttk.E+ttk.W+ttk.N)
         
-        
-        
+    def updateTheData(self, e):
+        currProp = self.valueListbox.get(self.valueListbox.curselection())
+        print("PROP:", self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']])
         
     def updateAttrListbox(self, e):
         self.selected['tag'] = self.tagListbox.get(self.tagListbox.curselection())
