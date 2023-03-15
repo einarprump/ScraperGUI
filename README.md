@@ -3,7 +3,7 @@
 2023: Write text later...
 
 ## What is up next?
-* Make a a REST call
+* Make a a HTTP call
 * Print to file
 * Modify the Interface and make more friendly with a little sex appeal
 
