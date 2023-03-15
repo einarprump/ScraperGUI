@@ -1,26 +1,10 @@
 from html.parser import HTMLParser
 from queue import LifoQueue
-
-class AttributesDictList:
-    def __init__(self):
-        self.attributes = {}
-    
-    def addAttrData(self, attr):
-        if attr[0]:
-            if attr[0] not in self.attributes:
-                self.attributes[attr[0]] = []
-            self.attributes[attr[0]].append(attr)
-            
         
 class ProperyData:
     def __init__(self, prop, data = None):
         self.attrs = prop
         self.data = data
-        #print("TYPE:", type(attrs))
-        #print("ATTRS:", attrs)
-        #print("DATA:", data)
-        if not attrs:
-            self.attrs.append(('None', 'None'))
    
     def getAttribute(self):
         if len(self.attrs[0]) > 0:

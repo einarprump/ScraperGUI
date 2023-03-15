@@ -40,8 +40,8 @@ class InputFrame(ttk.Frame):
         self.urlFileEntry = ttk.Entry(self, width=100, textvariable = self.urlFileName)
         self.urlFileEntry.focus()
         self.urlFileEntry.grid(column=1, row=0, sticky=ttk.W)
-        self.scrapeBtn = ttk.Button(self, text="Scrape", command=self.btnScrape, underline=0, takefocus=True).grid(column=2, row=0, ipadx=3, sticky="NEWS")
-        self.openFile = ttk.Button(self, text="Open file..", command=self.btnOpenFile, underline=0, takefocus=True).grid(column=3, row=0, ipadx=3, sticky="NEWS")
+        ttk.Button(self, text="Scrape", command=self.btnScrape, underline=0, takefocus=True).grid(column=2, row=0, ipadx=3, sticky="NEWS")
+        ttk.Button(self, text="Open file..", command=self.btnOpenFile, underline=0, takefocus=True).grid(column=3, row=0, ipadx=3, sticky="NEWS")
         for widget in self.winfo_children():
             widget.grid(padx=5, pady=5)
 
