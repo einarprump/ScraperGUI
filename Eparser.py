@@ -32,14 +32,9 @@ class Eparser(HTMLParser):
                 if obj['attrs'][0][0] not in self.htmlDoc[tag]:
                     self.htmlDoc[tag][obj['attrs'][0][0]] = []
                 self.htmlDoc[tag][obj['attrs'][0][0]].append({'prop': obj['attrs'][0][1], 'data': self.currentData})
-                #append(Attributes(obj['attrs'], self.currentData))
         self.currentData = None
        
     def handle_data(self, data):
         cleanString = data.rstrip("\t \n")
         if len(cleanString) > 3:
             self.currentData = cleanString
-            #if self.tmpClass['tag'] != "script" and self.tmpClass['tag'] != "style" and self.tmpClass['tag'] != "meta":
-            #    pass
-                #print(f"WE HAVE DATA!!  -> {cleanString}   : {self.tmpClass['tag']} - {self.tmpClass['attr']} - {self.tmpClass['prop']}")
-
