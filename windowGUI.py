@@ -18,7 +18,9 @@ class Manager(object):
             print("Not a file or a url!")
         else:
             if filename[0:4] == ("http"):
-                getResponse = request.urlopen(filename)
+                req = request.Request(filename)
+                req.add_header('User-Agent', 'HomeMade-Browser/0.1 - In Development')
+                getResponse = request.urlopen(req)
                 print(getResponse.getheaders())
                 requestBytes = getResponse.read()
                 requestString = requestBytes.decode("utf-8")
@@ -38,9 +40,9 @@ class Manager(object):
         r = 0
         for h in headers:
             column = 0
-            ttk.Label(self.gui.headers_frame, text=h[0]).grid(row=r, column=column)
+            ttk.Label(self.gui.headers_frame, text=h[0]).grid(row=r, column=column, sticky="W")
             column += 1
-            ttk.Label(self.gui.headers_frame, text=h[1]).grid(row=r, column=column)
+            ttk.Label(self.gui.headers_frame, text=h[1]).grid(row=r, column=column, columnspan=5, sticky="W")
             r += 1
 
 class HeadersFrame(ttk.Frame):
@@ -153,34 +155,82 @@ class ListboxFrame(ttk.Frame):
             for a in self.manager.parser.htmlDoc[self.selected['tag']][self.selected['attr']].keys():
                 self.valueListbox.insert(ttk.END, a)
 
+class TreeView(ttk.Frame):
+    def __init__(self, container):
+        super().__init__(container)
+    
+    def initialize(self, data):
+        print("INITIALIZING...")
+        tree = ttk.Treeview(self)
+        tree.heading('#0', text='Scraped', anchor=ttk.W)
+        tree.insert('', ttk.END)
 
 class OptionsFrame(ttk.Frame):
+
+    TAGENTRY = "Ex: span,li,..."
+    ATTRENTRY = "Ex: rel,alt,..."
+
     def __init__(self, container):
         super().__init__(container)
         self.__create_widgets()
         self.manager = None
     
     def __create_widgets(self):
-        self.tags = ttk.StringVar()
-        self.attrs = ttk.StringVar()
-        self.classname = ttk.StringVar()
-        self.tag_id = ttk.StringVar()
+        ttk.Label(self, text="Normal scraping behavior is that all tags are harvested,\n to change that check tags and/or attributes to harvest.", anchor="e").grid(row=0, column=0, columnspan=2, sticky="WENS")
+        # TAGS TO SCRAPE #
+        self.head = ttk.StringVar()
+        self.img = ttk.StringVar()
+        self.a = ttk.StringVar()
+        self.div = ttk.StringVar()
+        self.meta = ttk.StringVar()
+        
+        self.addTag = ttk.StringVar()
+        self.addTag.set(self.TAGENTRY)
 
-        fetchLabelFrame = ttk.LabelFrame(self, text="Fetch only?", borderwidth=2)
-        fetchLabelFrame.grid(row=0, column=0, columnspan=3, pady=10, padx=10, ipadx=5, ipady=5, sticky="NEWS")
-        ttk.Label(fetchLabelFrame, text="Tags:").grid(row=1, column=0, pady=(5,0), sticky="WNE")
-        ttk.Entry(fetchLabelFrame, width=50, textvariable=self.tags).grid(row=1, column=1, pady=(5,0), sticky="NEWS")
-        ttk.Label(fetchLabelFrame, text="Attributes:").grid(row=2, column=0, pady=(5,0), sticky="WNE")
-        ttk.Entry(fetchLabelFrame, width=50, textvariable=self.attrs).grid(row=2, column=1, pady=(5,0), sticky="NEWS")
+        tagLabelFrame = ttk.LabelFrame(self, text="Tags", borderwidth=1)
+        tagLabelFrame.grid(row=1, column=0, pady=10, padx=10, ipadx=5, ipady=5, sticky="NEWS")
+        ttk.Checkbutton(tagLabelFrame, text="head", variable=self.head, onvalue="head", offvalue="").grid(row=0, column=0, pady=(1,0), padx=(5,0), sticky="W")
+        ttk.Checkbutton(tagLabelFrame, text="img", variable=self.img, onvalue="img", offvalue="").grid(row=1, column=0, pady=(1,0), padx=(5,0), sticky="W")
+        ttk.Checkbutton(tagLabelFrame, text="a", variable=self.a, onvalue="a", offvalue="").grid(row=2, column=0, pady=(1,0), padx=(5,0), sticky="W")
+        ttk.Checkbutton(tagLabelFrame, text="div", variable=self.div, onvalue="div", offvalue="").grid(row=0, column=1, pady=(1,0), padx=(5,0), sticky="W")
+        ttk.Checkbutton(tagLabelFrame, text="meta", variable=self.div, onvalue="div", offvalue="").grid(row=1, column=1, pady=(1,0), padx=(5,0), sticky="W")
+        
 
-        showDataInLabelFrame = ttk.LabelFrame(self, text="Show data inside:", borderwidth=2)
-        showDataInLabelFrame.grid(row=3, column=0, columnspan=3, pady=10, padx=10, ipadx=5, ipady=5, sticky="NEWS")
-        ttk.Label(showDataInLabelFrame, text="Class:").grid(row=4, column=0, pady=(5,0), sticky="WNE")
-        ttk.Entry(showDataInLabelFrame, width=50, textvariable=self.classname).grid(row=4, column=1, pady=(5,0), sticky="NEWS")
-        ttk.Label(showDataInLabelFrame, text="id:").grid(row=5, column=0, pady=(5,0), sticky="WNE")
-        ttk.Entry(showDataInLabelFrame, width=50, textvariable=self.tag_id).grid(row=5, column=1, pady=(5,0), sticky="NEWS")
+        self.tagEntry = ttk.Entry(tagLabelFrame, textvariable=self.addTag)
+        self.tagEntry.grid(row=3, column=0, columnspan=2, padx=(5,0), pady=(8,0), sticky="NSEW")
+        ttk.Button(tagLabelFrame, command=self.do_nothing, text="Add").grid(row=3, column=3, pady=(8,0), sticky="NSEW")
+        self.tagEntry.bind("<FocusIn>", lambda event, arg=self.addTag: self.clean_example_text(event, arg))
+        self.tagEntry.bind("<FocusOut>", lambda event, arg=[self.addTag, self.TAGENTRY]: self.check_entry(event, arg))
 
+        self.class_atr = ttk.StringVar()
+        self.id_attr = ttk.StringVar()
+        self.style = ttk.StringVar()
+        self.href = ttk.StringVar()
 
+        self.addAttr = ttk.StringVar()
+        self.addAttr.set(self.ATTRENTRY)
+        attrLabelFrame = ttk.LabelFrame(self, text="Attributes", borderwidth=1)
+        attrLabelFrame.grid(row=1, column=1, pady=10, padx=10, ipadx=5, ipady=5, sticky="NEWS")
+        ttk.Checkbutton(attrLabelFrame, text="class", variable=self.class_atr, onvalue="head", offvalue="").grid(row=0, column=0, pady=(1,0), padx=(5,0), sticky="W")
+        ttk.Checkbutton(attrLabelFrame, text="id", variable=self.id_attr, onvalue="id", offvalue="").grid(row=1, column=0, pady=(1,0), padx=(5,0), sticky="W")
+        ttk.Checkbutton(attrLabelFrame, text="style", variable=self.style, onvalue="style", offvalue="").grid(row=2, column=0, pady=(1,0), padx=(5,0), sticky="W")
+        ttk.Checkbutton(attrLabelFrame, text="href", variable=self.href, onvalue="href", offvalue="").grid(row=0, column=1, pady=(1,0), padx=(5,0), sticky="W")
+
+        self.attrEntry = ttk.Entry(attrLabelFrame, textvariable=self.addAttr)
+        self.attrEntry.grid(row=3, column=0, columnspan=2, padx=(5,0), pady=(8,0), sticky="NSEW")
+        ttk.Button(attrLabelFrame, command=self.do_nothing, text="Add").grid(row=3, column=3, pady=(8,0), sticky="NSEW")
+        self.attrEntry.bind("<FocusIn>", lambda event, arg=self.addAttr: self.clean_example_text(event, arg))
+        self.attrEntry.bind("<FocusOut>", lambda event, arg=[self.addAttr, self.ATTRENTRY]: self.check_entry(event, arg))
+    
+    def check_entry(self, event, arg):
+        if len(arg[0].get()) == 0:
+            arg[0].set(arg[1])
+
+    def do_nothing(self):
+        print("DO NOTHING!")
+    
+    def clean_example_text(self, e, arg):
+        arg.set('')
 
 class ApplicationGUI(ttk.Tk):
     '''
@@ -197,8 +247,10 @@ class ApplicationGUI(ttk.Tk):
         self.__create_widgets()
     
     def __create_widgets(self):
+        self.__create_menu()
+
         self.input_frame = InputFrame(self)
-        self.input_frame.grid(column=0, row=0, sticky="WENS")
+        self.input_frame.grid(column=0, row=0, columnspan=4, sticky="WENS")
 
         self.listbox_frame = ListboxFrame(self)
         self.listbox_frame.grid(column=0, row=1, sticky="WENS", pady=(0, 5), padx=5)
@@ -206,10 +258,38 @@ class ApplicationGUI(ttk.Tk):
         self.headers_frame = HeadersFrame(self)
         self.headers_frame.grid(column=0, row=2, sticky="WENS")
 
-        #self.options_frame = OptionsFrame(self)
-        #self.options_frame.grid(column=0, row=1, rowspan=4, columnspan=4, sticky="ENS")
+        self.options_frame = OptionsFrame(self)
+        self.options_frame.grid(column=1, row=0, rowspan=8, sticky=ttk.W+ttk.E, padx=(0,15))
+    
+    def __create_menu(self):
+        menubar = ttk.Menu(self)
+        
+        file_menu = ttk.Menu(menubar, tearoff=0)
+        file_menu.add_command(label="New", command=self.do_nothing)
+        file_menu.add_command(label="Open", command=self.do_nothing)
+        file_menu.add_command(label="Save", command=self.do_nothing)
+        file_menu.add_command(label="Save as...", command=self.do_nothing)
+        file_menu.add_command(label="Export Scrape", command=self.do_nothing)
+        file_menu.add_separator()
+        file_menu.add_command(label="Quit", command=self.quit)
+        menubar.add_cascade(label="File", menu=file_menu)
+        
+        edit_menu = ttk.Menu(menubar, tearoff=0)
+        edit_menu.add_command(label="Find", command=self.do_nothing)
+        edit_menu.add_separator()
+        edit_menu.add_command(label="Configure Headers", command=self.do_nothing)
+        edit_menu.add_command(label="Configure Scraper", command=self.do_nothing)
+        menubar.add_cascade(label="Edit", menu=edit_menu)
 
+        help_menu = ttk.Menu(menubar, tearoff=0)
+        help_menu.add_command(label="About", command=self.do_nothing)
+        menubar.add_cascade(label="Help", menu=help_menu)
 
+        self.config(menu=menubar)
+  
+    
+    def do_nothing(self):
+        print("NOTHING!")
 
 
 if __name__ == "__main__":
